@@ -554,35 +554,6 @@
         const btnAddRecarga = document.getElementById('btnAddRecarga');
         const listaRecargas = document.getElementById('listaRecargas');
 
-        // Alternar visualização do detalhamento de recargas
-        ativaDetalhesRecarga.addEventListener('change', function() {
-            if(this.checked) {
-                containerRecargas.classList.remove('hidden');
-                if(listaRecargas.children.length === 0) adicionarLinhaRecarga();
-            } else {
-                containerRecargas.classList.add('hidden');
-            }
-            calcular();
-            salvarDados();
-        });
-
-        btnAddRecarga.addEventListener('click', () => {
-            adicionarLinhaRecarga();
-            salvarDados();
-        });
-
-        function adicionarLinhaRecarga(kwh = 20, preco = 1.49) {
-            const div = document.createElement('div');
-            div.className = 'flex items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-800';
-            div.innerHTML = `
-                <input type="number" placeholder="kWh" value="${kwh}" step="0.1" class="recarga-kwh w-1/3 bg-slate-950 border border-slate-700 rounded p-1.5 text-sm text-white focus:outline-none" oninput="calcular(); salvarDados();">
-                <input type="number" placeholder="R$/kWh" value="${preco}" step="0.01" class="recarga-preco w-1/3 bg-slate-950 border border-slate-700 rounded p-1.5 text-sm text-white focus:outline-none" oninput="calcular(); salvarDados();">
-                <button type="button" onclick="this.parentElement.remove(); calcular(); salvarDados();" class="w-1/6 bg-red-900/40 hover:bg-red-800 text-red-300 rounded p-1.5 text-xs">Excluir</button>
-            `;
-            listaRecargas.appendChild(div);
-            calcular();
-        }
-
         function calcular() {
             try {
                 // Entradas principais
@@ -701,6 +672,35 @@
             } catch (error) {
                 console.error('Erro ao calcular:', error);
             }
+        }
+
+        // Alternar visualização do detalhamento de recargas
+        ativaDetalhesRecarga.addEventListener('change', function() {
+            if(this.checked) {
+                containerRecargas.classList.remove('hidden');
+                if(listaRecargas.children.length === 0) adicionarLinhaRecarga();
+            } else {
+                containerRecargas.classList.add('hidden');
+            }
+            calcular();
+            salvarDados();
+        });
+
+        btnAddRecarga.addEventListener('click', () => {
+            adicionarLinhaRecarga();
+            salvarDados();
+        });
+
+        function adicionarLinhaRecarga(kwh = 20, preco = 1.49) {
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-800';
+            div.innerHTML = `
+                <input type="number" placeholder="kWh" value="${kwh}" step="0.1" class="recarga-kwh w-1/3 bg-slate-950 border border-slate-700 rounded p-1.5 text-sm text-white focus:outline-none" oninput="calcular(); salvarDados();">
+                <input type="number" placeholder="R$/kWh" value="${preco}" step="0.01" class="recarga-preco w-1/3 bg-slate-950 border border-slate-700 rounded p-1.5 text-sm text-white focus:outline-none" oninput="calcular(); salvarDados();">
+                <button type="button" onclick="this.parentElement.remove(); calcular(); salvarDados();" class="w-1/6 bg-red-900/40 hover:bg-red-800 text-red-300 rounded p-1.5 text-xs">Excluir</button>
+            `;
+            listaRecargas.appendChild(div);
+            calcular();
         }
 
         function salvarImagem() {
@@ -857,9 +857,6 @@
             ctx.fillText(economia, 550, 520);
             
             // Autonomia
-            const autonomia = document.getElementById('resAutonomia').innerText;
-            const autonomiaTotal = document.getElementById('resAutonomiaTotal').innerText;
-            
             ctx.fillStyle = '#334155';
             ctx.fillRect(100, 570, 600, 60);
             
