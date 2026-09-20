@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calculadora Carro Eletrico ou Hibrido</title>
     <!-- Tailwind CSS para um design moderno e responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -51,19 +51,89 @@
             opacity: 1;
         }
         
+        /* Suporte para toque em mobile */
+        .tooltip-container .tooltip:active,
+        .tooltip-container .tooltip.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        
         /* Ajuste para tooltips em telas pequenas */
         @media (max-width: 640px) {
             .tooltip {
-                width: 220px;
-                font-size: 12px;
+                width: 200px;
+                font-size: 11px;
                 left: 0;
                 transform: none;
                 margin-left: 0;
+                bottom: 100%;
+                right: auto;
             }
             
             .tooltip::after {
                 left: 8px;
                 margin-left: 0;
+            }
+            
+            .tooltip-title {
+                font-size: 12px;
+            }
+        }
+        
+        /* Melhorias para mobile */
+        @media (max-width: 640px) {
+            body {
+                padding: 8px;
+            }
+            
+            .tooltip-icon {
+                width: 16px;
+                height: 16px;
+                font-size: 10px;
+            }
+            
+            input[type="number"] {
+                font-size: 16px; /* Evita zoom no iOS */
+            }
+            
+            /* Ajustar espaçamento em mobile */
+            .mt-6 {
+                margin-top: 1rem;
+            }
+            
+            .space-y-4 > * + * {
+                margin-top: 0.75rem;
+            }
+            
+            /* Ajustar tamanho de fontes em mobile */
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            h2 {
+                font-size: 1.125rem;
+            }
+            
+            /* Ajustar botões em mobile */
+            button {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            /* Tooltips melhorados para mobile */
+            .tooltip {
+                width: 90vw;
+                max-width: 280px;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                right: auto !important;
+                margin-left: 0 !important;
+            }
+            
+            .tooltip::after {
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                margin-left: 0 !important;
             }
         }
         
@@ -1038,6 +1108,37 @@
             console.log('Dados carregados, calculando...');
             calcular();
             console.log('Cálculo concluído');
+            
+            // Suporte para tooltips em mobile
+            if ('ontouchstart' in window) {
+                const tooltipContainers = document.querySelectorAll('.tooltip-container');
+                tooltipContainers.forEach(container => {
+                    const tooltip = container.querySelector('.tooltip');
+                    if (tooltip) {
+                        container.addEventListener('touchstart', function(e) {
+                            e.preventDefault();
+                            // Esconder outros tooltips
+                            document.querySelectorAll('.tooltip').forEach(t => {
+                                if (t !== tooltip) {
+                                    t.style.visibility = 'hidden';
+                                    t.style.opacity = '0';
+                                }
+                            });
+                            // Mostrar este tooltip
+                            tooltip.style.visibility = 'visible';
+                            tooltip.style.opacity = '1';
+                        });
+                        
+                        // Esconder quando tocar fora
+                        document.addEventListener('touchstart', function(e) {
+                            if (!container.contains(e.target)) {
+                                tooltip.style.visibility = 'hidden';
+                                tooltip.style.opacity = '0';
+                            }
+                        });
+                    }
+                });
+            }
         };
     </script>
 </body>
