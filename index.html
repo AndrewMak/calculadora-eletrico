@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Híbrida Avançada - Calc-Hibrid</title>
+    <!-- Tailwind CSS para um design moderno e responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos dos tooltips */
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            z-index: 1000;
+            background-color: #1e293b;
+            color: #e2e8f0;
+            text-align: left;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            line-height: 1.4;
+            width: 280px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border: 1px solid #334155;
+            transition: opacity 0.3s, visibility 0.3s;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+        }
+        
+        .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -8px;
+            border-width: 8px;
+            border-style: solid;
+            border-color: #1e293b transparent transparent transparent;
+        }
+        
+        .tooltip-container:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Ajuste para tooltips em telas pequenas */
+        @media (max-width: 640px) {
+            .tooltip {
+                width: 220px;
+                font-size: 12px;
+                left: 0;
+                transform: none;
+                margin-left: 0;
+            }
+            
+            .tooltip::after {
+                left: 8px;
+                margin-left: 0;
+            }
+        }
+        
+        .tooltip-title {
+            font-weight: bold;
+            color: #34d399;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background-color: #334155;
+            color: #94a3b8;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 6px;
+            cursor: help;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        
+        .tooltip-icon:hover {
+            background-color: #34d399;
+            color: #0f172a;
+        }
+        
+        .label-with-tooltip {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 sm:p-6 lg:p-8 font-sans">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Cabeçalho -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-emerald-400 tracking-tight">Calc-Hibrid Pro</h1>
+            <p class="text-slate-400 mt-2 text-sm sm:text-base">Calculadora de Custos, Consumo Real, VTOL e Eficiência para Veículos Híbridos</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- FORMULÁRIO DE ENTRADA (Esquerda) -->
+            <div class="lg:col-span-6 bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700">
+                <h2 class="text-xl font-bold text-emerald-400 mb-4 pb-2 border-b border-slate-700">Parâmetros do Veículo e Viagem</h2>
+
+                <form id="calcForm" class="space-y-4">
+                    
+                    <div>
+                        <div class="label-with-tooltip">
+                            <label class="block text-sm font-medium text-slate-300">Distância Total Percorrida (km)</label>
+                            <div class="tooltip-container">
+                                <span class="tooltip-icon">?</span>
+                                <div class="tooltip">
+                                    <div class="tooltip-title">Distância Total</div>
+                                    Distância total percorrida durante a viagem em quilômetros. Este valor é usado como base para todos os cálculos de eficiência e custo por quilômetro.
+                                </div>
+                            </div>
+                        </div>
+                        <input type="number" id="distancia" value="516" step="0.1" required class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <div class="label-with-tooltip">
+                                <label class="block text-sm font-medium text-slate-300">Capac. Carregamento VTOL (kWh)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip">
+                                        <div class="tooltip-title">VTOL - Vehicle To Offboard Load</div>
+                                        Energia total puxada da tomada acumulada durante a viagem. Representa toda a energia elétrica consumida pelo veículo, incluindo recargas em casa e eletropostos.
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="number" id="vtolTotal" value="64.7" step="0.1" required class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <div class="label-with-tooltip">
+                                <label class="block text-sm font-medium text-slate-300">Consumo Total Combustível (L)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip">
+                                        <div class="tooltip-title">Consumo de Combustível</div>
+                                        Quantidade total de gasolina consumida durante a viagem em litros. Usado para calcular custos de combustível e eficiência em km/L.
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="number" id="combustivelTotal" value="7.2" step="0.1" required class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Seção de Custos Base -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <div class="label-with-tooltip">
+                                <label class="block text-sm font-medium text-slate-300">Preço Padrão do kWh (R$)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip">
+                                        <div class="tooltip-title">Preço da Energia Elétrica</div>
+                                        Preço por kWh da energia elétrica. Usado como valor padrão quando não há detalhamento de recargas individuais. Varia conforme a tarifa residencial local.
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="number" id="precoKwh" value="1.49" step="0.01" required class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <div class="label-with-tooltip">
+                                <label class="block text-sm font-medium text-slate-300">Preço da Gasolina (R$/L)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip">
+                                        <div class="tooltip-title">Preço da Gasolina</div>
+                                        Preço atual por litro da gasolina. Usado para calcular custos de combustível e comparar eficiência com veículos tradicionais.
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="number" id="precoGasolina" value="6.19" step="0.01" required class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- FLAG DE RECARGAS DETALHADAS -->
+                    <div class="pt-4 border-t border-slate-700">
+                        <label class="flex items-center space-x-3 cursor-pointer">
+                            <input type="checkbox" id="ativaDetalhesRecarga" class="w-5 h-5 text-emerald-500 bg-slate-900 border-slate-700 rounded focus:ring-emerald-500">
+                            <div class="tooltip-container">
+                                <span class="text-sm font-medium text-emerald-300">Detalhar custos de cada recarga individualmente (Casa vs Eletroposto)</span>
+                                <span class="tooltip-icon" style="margin-left: 6px;">?</span>
+                                <div class="tooltip">
+                                    <div class="tooltip-title">Recargas Detalhadas</div>
+                                    Ative para especificar custos individuais de cada recarga (diferentes preços em casa vs eletropostos). Fornece cálculo mais preciso quando há variação de preços de energia.
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- CONTAINER DINÂMICO DE RECARGAS -->
+                    <div id="containerRecargas" class="hidden space-y-3 bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Histórico de Recargas</span>
+                            <button type="button" id="btnAddRecarga" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition">+ Adicionar Recarga</button>
+                        </div>
+                        <div id="listaRecargas" class="space-y-2">
+                            <!-- Linhas inseridas via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Seção de Bateria Atual -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-700">
+                        <div>
+                            <div class="label-with-tooltip">
+                                <label class="block text-sm font-medium text-slate-300">Bateria Total (kWh)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip">
+                                        <div class="tooltip-title">Capacidade Total da Bateria</div>
+                                        Capacidade total da bateria do veículo em kWh. Usado para calcular energia restante e custo para recarga completa. Consulte o manual do veículo.
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="number" id="bateriaTotal" value="18.8" step="0.1" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <div class="label-with-tooltip">
+                                <label class="block text-sm font-medium text-slate-300">Bateria Atual (%)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip">
+                                        <div class="tooltip-title">Nível Atual da Bateria</div>
+                                        Porcentagem atual de carga da bateria. Usado para calcular energia restante e custo estimado para recarga completa (0-100%).
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="number" id="bateriaAtualPct" value="28" step="1" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+                    
+                    <!-- Seção de Bateria Inicial e Dados de Viagem -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-700">
+                        <div>
+                            <div class="label-with-tooltip">
+                                <label class="block text-sm font-medium text-slate-300">Bateria Inicial (%)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip">
+                                        <div class="tooltip-title">Bateria Inicial da Viagem</div>
+                                        Porcentagem da bateria no início da viagem antes de começar a carregar. Essencial para cálculo preciso da eficiência elétrica real.
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="number" id="bateriaInicialPct" value="50" step="1" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <div class="label-with-tooltip">
+                                <label class="block text-sm font-medium text-slate-300">Tempo Total da Viagem (horas)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">?</span>
+                                    <div class="tooltip">
+                                        <div class="tooltip-title">Tempo de Viagem</div>
+                                        Tempo total percorrido em horas. Usado para calcular velocidade média e eficiência temporal (kWh por hora).
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="number" id="tempoViagem" value="8" step="0.1" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Comparação com Veículo a Combustión -->
+                    <div class="pt-2">
+                        <div class="label-with-tooltip">
+                            <label class="block text-sm font-medium text-slate-300">Consumo Carro Combustível Comparativo (km/L)</label>
+                            <div class="tooltip-container">
+                                <span class="tooltip-icon">?</span>
+                                <div class="tooltip">
+                                    <div class="tooltip-title">Consumo Comparativo</div>
+                                    Consumo médio de um veículo tradicional a combustão (em km/L) para a mesma rota. Usado para calcular economia e comparar eficiência entre veículos.
+                                </div>
+                            </div>
+                        </div>
+                        <input type="number" id="consumoComparativo" value="12" step="0.1" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+
+                    <div class="tooltip-container">
+                        <button type="button" onclick="console.log('Botão calcular clicado'); calcular();" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 px-4 rounded-xl transition shadow-lg shadow-emerald-500/20 mt-4">
+                            Calcular Custos e Métricas
+                        </button>
+                        <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                            <div class="tooltip-title">Calcular</div>
+                            Processa todos os dados informados e gera os resultados de custos, eficiência e economia. Os dados são salvos automaticamente no localStorage.
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- PAINEL DE RESULTADOS (Direita - Estilo Escuro/Neon da Imagem 2) -->
+            <div class="lg:col-span-6 bg-slate-950 p-6 rounded-2xl shadow-2xl border border-emerald-500/30 flex flex-col justify-between">
+                <div>
+                    <div class="text-center pb-4 border-b border-slate-800">
+                        <div class="tooltip-container inline-block">
+                            <span class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Custo Total da Viagem</span>
+                            <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                            <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                <div class="tooltip-title">Custo Total</div>
+                                Soma de todos os custos da viagem: energia elétrica + combustível. Representa o valor real gasto para percorrer a distância informada.
+                            </div>
+                        </div>
+                        <div id="resCustoTotal" class="text-4xl sm:text-5xl font-black text-emerald-400 mt-1">R$ 0,00</div>
+                    </div>
+
+                    <!-- Composição do Custo (Barra) -->
+                    <div class="mt-6">
+                        <div class="tooltip-container inline-block">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Composição do Custo:</span>
+                            <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                            <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                <div class="tooltip-title">Composição de Custos</div>
+                                Visualização da proporção entre custos elétricos (azul) e de combustível (vermelho). Ajuda a entender como a energia é distribuída na viagem.
+                            </div>
+                        </div>
+                        <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden flex mt-2">
+                            <div id="barEletrico" class="bg-blue-500 h-full transition-all duration-500" style="width: 50%"></div>
+                            <div id="barGasolina" class="bg-red-500 h-full transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-400 mt-1.5">
+                            <span id="lblCustoEletrico">Elétrico: R$ 0,00</span>
+                            <span id="lblCustoGasolina">Gasolina: R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <!-- Métricas de Consumo -->
+                    <div class="mt-6 space-y-3 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                        <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider border-b border-slate-800 pb-2">Métricas de Consumo & Eficiência</h3>
+                        
+                        <div class="flex justify-between text-sm items-center">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-slate-400">Gasolina (Eficiência Real):</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Eficiência a Gasolina</div>
+                                    Quilômetros percorridos por litro de combustível. Calculado: distância total ÷ litros consumidos. Valores mais altos indicam melhor eficiência.
+                                </div>
+                            </div>
+                            <span id="resKmLitro" class="font-bold text-white">0.00 km/L</span>
+                        </div>
+                        <div class="flex justify-between text-sm items-center">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-slate-400">Elétrico (Eficiência Real):</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Eficiência Elétrica</div>
+                                    Quilômetros percorridos por kWh de energia. Calculado: distância total ÷ kWh consumidos. Mede o aproveitamento da energia elétrica.
+                                </div>
+                            </div>
+                            <span id="resKmKwh" class="font-bold text-white">0.00 km/kWh</span>
+                        </div>
+                        <div class="flex justify-between text-sm items-center">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-slate-400">Elétrico (por 100km):</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Consumo por 100km</div>
+                                    Energia elétrica consumida a cada 100km. Medida padrão internacional para comparar eficiência entre veículos elétricos. Valores mais baixos são melhores.
+                                </div>
+                            </div>
+                            <span id="resKwh100" class="font-bold text-white">0.00 kWh/100km</span>
+                        </div>
+                        <div class="flex justify-between text-sm items-center">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-slate-400">Custo por km:</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Custo por Quilômetro</div>
+                                    Custo médio para percorrer 1km. Calculado: custo total ÷ distância. Métrica fundamental para planejamento de viagens e comparação de eficiência.
+                                </div>
+                            </div>
+                            <span id="resCustoKm" class="font-bold text-emerald-300">R$ 0,00 / km</span>
+                        </div>
+                        <div class="flex justify-between text-sm items-center">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-slate-400">Velocidade Média:</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Velocidade Média</div>
+                                    Velocidade média durante a viagem. Calculado: distância ÷ tempo. Ajuda a analisar impacto da velocidade no consumo.
+                                </div>
+                            </div>
+                            <span id="resVelocidadeMedia" class="font-bold text-white">0.00 km/h</span>
+                        </div>
+                        <div class="flex justify-between text-sm items-center">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-slate-400">Consumo por Hora:</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Consumo por Hora</div>
+                                    Energia elétrica consumida por hora de viagem. Calculado: energia consumida real ÷ tempo. Útil para planejamento de paradas para recarga.
+                                </div>
+                            </div>
+                            <span id="resConsumoHora" class="font-bold text-white">0.00 kWh/h</span>
+                        </div>
+                    </div>
+
+                    <!-- Consumo Combinado Ponderado -->
+                    <div class="mt-4 bg-emerald-950/30 border border-emerald-500/30 p-4 rounded-xl">
+                        <div class="tooltip-container inline-block">
+                            <span class="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Consumo Combinado Ponderado (Equivalente)</span>
+                            <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                            <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                <div class="tooltip-title">Consumo Combinado</div>
+                                Equivalente em km/L considerando custo total (elétrico + combustível). Converte o custo da viagem para litros equivalentes de gasolina, permitindo comparação direta com veículos tradicionais.
+                            </div>
+                        </div>
+                        <div id="resConsumoPonderado" class="text-2xl font-black text-emerald-300 mt-1">0.00 km/L</div>
+                    </div>
+
+                    <!-- Indicadores de Bateria & Recarga -->
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-xs text-slate-400 block">Energia Restante</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Energia Restante</div>
+                                    Quantidade de energia elétrica atualmente disponível na bateria. Calculado: capacidade total × porcentagem atual. Útil para planejar próximas recargas.
+                                </div>
+                            </div>
+                            <span id="resKwhRestante" class="text-lg font-bold text-blue-400">0.00 kWh</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-xs text-slate-400 block">Autonomia Elétrica</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Autonomia Elétrica</div>
+                                    Distância estimada que pode percorrer apenas com energia elétrica (bateria atual). Calculado: energia restante × eficiência elétrica (km/kWh).
+                                </div>
+                            </div>
+                            <span id="resAutonomia" class="text-lg font-bold text-emerald-400">0.00 km</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 grid grid-cols-2 gap-3">
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-xs text-slate-400 block">Custo p/ 100% Carga</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Custo para Recarga Completa</div>
+                                    Custo estimado para carregar a bateria de 0% a 100% usando o preço padrão do kWh. Ajuda a planejar gastos com energia elétrica.
+                                </div>
+                            </div>
+                            <span id="resCustoRecarga" class="text-lg font-bold text-amber-400">R$ 0,00</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                            <div class="tooltip-container inline-block">
+                                <span class="text-xs text-slate-400 block">Autonomia Total (100%)</span>
+                                <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                    <div class="tooltip-title">Autonomia Total</div>
+                                    Distância máxima estimada com bateria 100% carregada. Calculado: capacidade total × eficiência elétrica (km/kWh). Autonomia elétrica máxima do veículo.
+                                </div>
+                            </div>
+                            <span id="resAutonomiaTotal" class="text-lg font-bold text-purple-400">0.00 km</span>
+                        </div>
+                    </div>
+
+                    <!-- Economia vs Combustível -->
+                    <div class="mt-4 bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+                        <div class="tooltip-container inline-block">
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Economia vs. Carro a Combustível</span>
+                            <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                            <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                <div class="tooltip-title">Comparação de Economia</div>
+                                Compara o custo do veículo híbrido com um veículo tradicional a combustão para a mesma distância. Usa o consumo comparativo informado para calcular o custo tradicional.
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <div>
+                                <div class="tooltip-container inline-block">
+                                    <span class="text-xs text-slate-400">Custo Tradicional:</span>
+                                    <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                    <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                        <div class="tooltip-title">Custo Tradicional</div>
+                                        Custo estimado se a mesma viagem fosse feita com um veículo tradicional a combustão. Calculado usando o consumo comparativo informado.
+                                    </div>
+                                </div>
+                                <div id="resCustoTradicional" class="text-base font-bold text-red-400">R$ 0,00</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="tooltip-container inline-block">
+                                    <span class="text-xs text-slate-400">Poupança Real:</span>
+                                    <span class="tooltip-icon" style="margin-left: 4px;">?</span>
+                                    <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                                        <div class="tooltip-title">Poupança Real</div>
+                                        Economia obtida usando o veículo híbrido em vez do tradicional. Inclui valor em reais e porcentagem de economia em relação ao custo tradicional.
+                                    </div>
+                                </div>
+                                <div id="resEconomia" class="text-lg font-bold text-emerald-400">R$ 0,00 (0%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botões de Partilha e Ação -->
+                <div class="mt-6 pt-4 border-t border-slate-800 flex gap-3">
+                    <div class="tooltip-container flex-1">
+                        <button onclick="salvarImagem()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-3 rounded-xl text-sm transition text-center">
+                            Salvar Imagem
+                        </button>
+                        <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                            <div class="tooltip-title">Salvar Imagem</div>
+                            Gera uma imagem PNG com todos os resultados calculados, pronta para compartilhar ou guardar como registro.
+                        </div>
+                    </div>
+                    <div class="tooltip-container">
+                        <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-sm transition">
+                            Imprimir / PDF
+                        </button>
+                        <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                            <div class="tooltip-title">Imprimir / PDF</div>
+                            Abre a diálogo de impressão do navegador para imprimir o relatório ou salvar como PDF.
+                        </div>
+                    </div>
+                    <div class="tooltip-container">
+                        <button onclick="limparDados()" class="bg-red-900/40 hover:bg-red-800 text-red-300 font-semibold py-2.5 px-4 rounded-xl text-sm transition">
+                            Limpar Dados
+                        </button>
+                        <div class="tooltip" style="bottom: 120%; left: 50%; transform: translateX(-50%);">
+                            <div class="tooltip-title">Limpar Dados</div>
+                            Remove todos os dados salvos no localStorage e restaura os valores padrão da calculadora.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script de Lógica -->
+    <script>
+        const ativaDetalhesRecarga = document.getElementById('ativaDetalhesRecarga');
+        const containerRecargas = document.getElementById('containerRecargas');
+        const btnAddRecarga = document.getElementById('btnAddRecarga');
+        const listaRecargas = document.getElementById('listaRecargas');
+
+        // Alternar visualização do detalhamento de recargas
+        ativaDetalhesRecarga.addEventListener('change', function() {
+            if(this.checked) {
+                containerRecargas.classList.remove('hidden');
+                if(listaRecargas.children.length === 0) adicionarLinhaRecarga();
+            } else {
+                containerRecargas.classList.add('hidden');
+            }
+            calcular();
+            salvarDados();
+        });
+
+        btnAddRecarga.addEventListener('click', () => {
+            adicionarLinhaRecarga();
+            salvarDados();
+        });
+
+        function adicionarLinhaRecarga(kwh = 20, preco = 1.49) {
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-800';
+            div.innerHTML = `
+                <input type="number" placeholder="kWh" value="${kwh}" step="0.1" class="recarga-kwh w-1/3 bg-slate-950 border border-slate-700 rounded p-1.5 text-sm text-white focus:outline-none" oninput="calcular(); salvarDados();">
+                <input type="number" placeholder="R$/kWh" value="${preco}" step="0.01" class="recarga-preco w-1/3 bg-slate-950 border border-slate-700 rounded p-1.5 text-sm text-white focus:outline-none" oninput="calcular(); salvarDados();">
+                <button type="button" onclick="this.parentElement.remove(); calcular(); salvarDados();" class="w-1/6 bg-red-900/40 hover:bg-red-800 text-red-300 rounded p-1.5 text-xs">Excluir</button>
+            `;
+            listaRecargas.appendChild(div);
+            calcular();
+        }
+
+        function calcular() {
+            try {
+                // Entradas principais
+                const distancia = parseFloat(document.getElementById('distancia').value) || 0;
+                const vtolTotal = parseFloat(document.getElementById('vtolTotal').value) || 0;
+                const combustivelTotal = parseFloat(document.getElementById('combustivelTotal').value) || 0;
+                const precoKwhPadrao = parseFloat(document.getElementById('precoKwh').value) || 0;
+                const precoGasolina = parseFloat(document.getElementById('precoGasolina').value) || 0;
+
+                const bateriaTotal = parseFloat(document.getElementById('bateriaTotal').value) || 18.8;
+                const bateriaAtualPct = parseFloat(document.getElementById('bateriaAtualPct').value) || 0;
+                const bateriaInicialPct = parseFloat(document.getElementById('bateriaInicialPct').value) || 50;
+                const tempoViagem = parseFloat(document.getElementById('tempoViagem').value) || 0;
+                const consumoComparativo = parseFloat(document.getElementById('consumoComparativo').value) || 12;
+
+                // Cálculo do Custo Elétrico (Padrão vs Detalhado por Recargas)
+                let custoEletricoTotal = 0;
+                let kwhEfetivos = vtolTotal;
+
+                if (ativaDetalhesRecarga.checked) {
+                    let somaKwhCustom = 0;
+                    let somaCustoCustom = 0;
+                    const linhas = listaRecargas.querySelectorAll('div');
+                    linhas.forEach(linha => {
+                        const kwhInput = linha.querySelector('.recarga-kwh');
+                        const precoInput = linha.querySelector('.recarga-preco');
+                        if (kwhInput && precoInput) {
+                            const kwh = parseFloat(kwhInput.value) || 0;
+                            const preco = parseFloat(precoInput.value) || 0;
+                            somaKwhCustom += kwh;
+                            somaCustoCustom += (kwh * preco);
+                        }
+                    });
+                    // Custo detalhado usa os preços específicos de cada recarga
+                    if(somaKwhCustom > 0) {
+                        custoEletricoTotal = somaCustoCustom;
+                    } else {
+                        custoEletricoTotal = vtolTotal * precoKwhPadrao;
+                    }
+                } else {
+                    custoEletricoTotal = vtolTotal * precoKwhPadrao;
+                }
+                
+                // kwhEfetivos sempre usa o VTOL total (consumo real, não afetado pelo detalhamento de custos)
+                // O detalhamento de recargas afeta apenas o CUSTO, não o CONSUMO
+
+                // Custo da Gasolina
+                const custoGasolinaTotal = combustivelTotal * precoGasolina;
+
+                // Custo Total Geral
+                const custoTotal = custoEletricoTotal + custoGasolinaTotal;
+
+                // Proporções visuais para a barra
+                let pctEletrico = 50, pctGasolina = 50;
+                if(custoTotal > 0) {
+                    pctEletrico = (custoEletricoTotal / custoTotal) * 100;
+                    pctGasolina = (custoGasolinaTotal / custoTotal) * 100;
+                }
+
+                // Métricas de Consumo
+                const kmPorLitro = combustivelTotal > 0 ? (distancia / combustivelTotal) : 0;
+                
+                // Cálculo corrigido da eficiência elétrica real
+                const energiaInicial = bateriaTotal * (bateriaInicialPct / 100);
+                const energiaFinal = bateriaTotal * (bateriaAtualPct / 100);
+                const energiaConsumidaReal = vtolTotal + energiaInicial - energiaFinal;
+                const kmPorKwh = energiaConsumidaReal > 0 ? (distancia / energiaConsumidaReal) : 0;
+                const kwhPor100Km = distancia > 0 ? (energiaConsumidaReal / distancia) * 100 : 0;
+                const custoPorKm = distancia > 0 ? (custoTotal / distancia) : 0;
+                
+                // Métricas adicionais
+                const velocidadeMedia = tempoViagem > 0 ? (distancia / tempoViagem) : 0;
+                const consumoPorHora = tempoViagem > 0 ? (energiaConsumidaReal / tempoViagem) : 0;
+
+                // Consumo Combinado Ponderado (Equivalente em km/L)
+                const litrosEquivalentes = custoTotal / precoGasolina;
+                const consumoPonderado = litrosEquivalentes > 0 ? (distancia / litrosEquivalentes) : 0;
+
+                // Bateria e Recomposição
+                const kwhRestante = bateriaTotal * (bateriaAtualPct / 100);
+                const kwhFaltante = bateriaTotal - kwhRestante;
+                const custoRecargaCompleta = kwhFaltante * precoKwhPadrao;
+                
+                // Autonomia Elétrica
+                const autonomiaEletrica = kmPorKwh > 0 ? (kwhRestante * kmPorKwh) : 0;
+                const autonomiaTotal = kmPorKwh > 0 ? (bateriaTotal * kmPorKwh) : 0;
+
+                // Comparação com Combustão Pura
+                const litrosTradicional = distancia / consumoComparativo;
+                const custoTradicional = litrosTradicional * precoGasolina;
+                const economia = custoTradicional - custoTotal;
+                const economiaPct = custoTradicional > 0 ? (economia / custoTradicional) * 100 : 0;
+
+                // Atualizar o DOM (Resultados)
+                document.getElementById('resCustoTotal').innerText = `R$ ${custoTotal.toFixed(2)}`;
+                document.getElementById('barEletrico').style.width = `${pctEletrico}%`;
+                document.getElementById('barGasolina').style.width = `${pctGasolina}%`;
+                document.getElementById('lblCustoEletrico').innerText = `Elétrico: R$ ${custoEletricoTotal.toFixed(2)}`;
+                document.getElementById('lblCustoGasolina').innerText = `Gasolina: R$ ${custoGasolinaTotal.toFixed(2)}`;
+
+                document.getElementById('resKmLitro').innerText = `${kmPorLitro.toFixed(2)} km/L`;
+                document.getElementById('resKmKwh').innerText = `${kmPorKwh.toFixed(2)} km/kWh`;
+                document.getElementById('resKwh100').innerText = `${kwhPor100Km.toFixed(2)} kWh/100km`;
+                document.getElementById('resCustoKm').innerText = `R$ ${custoPorKm.toFixed(2)} / km`;
+                document.getElementById('resVelocidadeMedia').innerText = `${velocidadeMedia.toFixed(1)} km/h`;
+                document.getElementById('resConsumoHora').innerText = `${consumoPorHora.toFixed(2)} kWh/h`;
+
+                document.getElementById('resConsumoPonderado').innerText = `${consumoPonderado.toFixed(2)} km/L`;
+                document.getElementById('resKwhRestante').innerText = `${kwhRestante.toFixed(2)} kWh`;
+                document.getElementById('resAutonomia').innerText = `${autonomiaEletrica.toFixed(1)} km`;
+                document.getElementById('resCustoRecarga').innerText = `R$ ${custoRecargaCompleta.toFixed(2)}`;
+                document.getElementById('resAutonomiaTotal').innerText = `${autonomiaTotal.toFixed(1)} km`;
+
+                document.getElementById('resCustoTradicional').innerText = `R$ ${custoTradicional.toFixed(2)}`;
+                document.getElementById('resEconomia').innerText = `R$ ${economia.toFixed(2)} (${economiaPct.toFixed(1)}%)`;
+            } catch (error) {
+                console.error('Erro ao calcular:', error);
+            }
+        }
+
+        function salvarImagem() {
+            // Criar canvas temporário
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Configurar tamanho do canvas
+            canvas.width = 800;
+            canvas.height = 750;
+            
+            // Fundo escuro
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Título
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Calc-Hibrid Pro', canvas.width / 2, 50);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '16px Arial';
+            ctx.fillText('Relatório de Viagem Híbrida', canvas.width / 2, 75);
+            
+            // Linha separadora
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 90);
+            ctx.lineTo(750, 90);
+            ctx.stroke();
+            
+            // Custo Total
+            const custoTotal = document.getElementById('resCustoTotal').innerText;
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 48px Arial';
+            ctx.fillText(custoTotal, canvas.width / 2, 140);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '14px Arial';
+            ctx.fillText('CUSTO TOTAL DA VIAGEM', canvas.width / 2, 160);
+            
+            // Composição do custo (barra)
+            const barEletrico = document.getElementById('barEletrico').style.width;
+            const barGasolina = document.getElementById('barGasolina').style.width;
+            const lblCustoEletrico = document.getElementById('lblCustoEletrico').innerText;
+            const lblCustoGasolina = document.getElementById('lblCustoGasolina').innerText;
+            
+            const pctEletrico = parseFloat(barEletrico) || 50;
+            const pctGasolina = parseFloat(barGasolina) || 50;
+            
+            // Barra de composição
+            const barX = 100;
+            const barY = 190;
+            const barWidth = 600;
+            const barHeight = 30;
+            
+            // Fundo da barra
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(barX, barY, barWidth, barHeight);
+            
+            // Parte elétrica
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(barX, barY, (barWidth * pctEletrico) / 100, barHeight);
+            
+            // Parte gasolina
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(barX + (barWidth * pctEletrico) / 100, barY, (barWidth * pctGasolina) / 100, barHeight);
+            
+            // Legenda da barra
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(lblCustoEletrico, barX, barY + 50);
+            ctx.textAlign = 'right';
+            ctx.fillText(lblCustoGasolina, barX + barWidth, barY + 50);
+            
+            // Métricas de consumo
+            const kmLitro = document.getElementById('resKmLitro').innerText;
+            const kmKwh = document.getElementById('resKmKwh').innerText;
+            const kwh100 = document.getElementById('resKwh100').innerText;
+            const custoKm = document.getElementById('resCustoKm').innerText;
+            const velocidadeMedia = document.getElementById('resVelocidadeMedia').innerText;
+            const consumoHora = document.getElementById('resConsumoHora').innerText;
+            const autonomia = document.getElementById('resAutonomia').innerText;
+            const autonomiaTotal = document.getElementById('resAutonomiaTotal').innerText;
+            
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('MÉTRICAS DE CONSUMO', canvas.width / 2, 270);
+            
+            // Grid de métricas
+            const metrics = [
+                { label: 'Gasolina (Eficiência Real)', value: kmLitro },
+                { label: 'Elétrico (Eficiência Real)', value: kmKwh },
+                { label: 'Elétrico (por 100km)', value: kwh100 },
+                { label: 'Custo por km', value: custoKm },
+                { label: 'Velocidade Média', value: velocidadeMedia },
+                { label: 'Consumo por Hora', value: consumoHora },
+                { label: 'Autonomia Atual', value: autonomia },
+                { label: 'Autonomia Total', value: autonomiaTotal }
+            ];
+            
+            let metricY = 300;
+            metrics.forEach((metric, index) => {
+                const x = 200 + (index % 2) * 400;
+                const y = metricY + Math.floor(index / 2) * 60;
+                
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(metric.label, x - 150, y);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'right';
+                ctx.fillText(metric.value, x + 150, y);
+            });
+            
+            // Consumo combinado
+            const consumoPonderado = document.getElementById('resConsumoPonderado').innerText;
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(100, 420, 600, 50);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('CONSUMO COMBINADO PONDERADO', canvas.width / 2, 440);
+            ctx.font = 'bold 24px Arial';
+            ctx.fillText(consumoPonderado, canvas.width / 2, 460);
+            
+            // Economia
+            const custoTradicional = document.getElementById('resCustoTradicional').innerText;
+            const economia = document.getElementById('resEconomia').innerText;
+            
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(100, 500, 600, 60);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Custo Tradicional:', 120, 520);
+            ctx.fillStyle = '#ef4444';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(custoTradicional, 280, 520);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText('Poupança Real:', 680, 520);
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(economia, 550, 520);
+            
+            // Autonomia
+            const autonomia = document.getElementById('resAutonomia').innerText;
+            const autonomiaTotal = document.getElementById('resAutonomiaTotal').innerText;
+            
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(100, 570, 600, 60);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Autonomia Atual:', 120, 590);
+            ctx.fillStyle = '#34d399';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(autonomia, 280, 590);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'right';
+            ctx.fillText('Autonomia Total:', 680, 590);
+            ctx.fillStyle = '#a855f7';
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(autonomiaTotal, 550, 590);
+            
+            // Rodapé
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 640, canvas.width, 40);
+            ctx.fillStyle = '#64748b';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Calculado via Calc-Hibrid Pro - ' + new Date().toLocaleDateString('pt-BR'), canvas.width / 2, 665);
+            
+            // Converter para imagem e fazer download
+            const link = document.createElement('a');
+            link.download = 'calc-hibrid-relatorio.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Função para salvar dados no localStorage
+        function salvarDados() {
+            const dados = {
+                distancia: document.getElementById('distancia').value,
+                vtolTotal: document.getElementById('vtolTotal').value,
+                combustivelTotal: document.getElementById('combustivelTotal').value,
+                precoKwh: document.getElementById('precoKwh').value,
+                precoGasolina: document.getElementById('precoGasolina').value,
+                ativaDetalhesRecarga: document.getElementById('ativaDetalhesRecarga').checked,
+                bateriaTotal: document.getElementById('bateriaTotal').value,
+                bateriaAtualPct: document.getElementById('bateriaAtualPct').value,
+                bateriaInicialPct: document.getElementById('bateriaInicialPct').value,
+                tempoViagem: document.getElementById('tempoViagem').value,
+                consumoComparativo: document.getElementById('consumoComparativo').value,
+                recargas: []
+            };
+
+            // Salvar recargas detalhadas se houver
+            if (ativaDetalhesRecarga.checked) {
+                const linhas = listaRecargas.querySelectorAll('div');
+                linhas.forEach(linha => {
+                    dados.recargas.push({
+                        kwh: linha.querySelector('.recarga-kwh').value,
+                        preco: linha.querySelector('.recarga-preco').value
+                    });
+                });
+            }
+
+            localStorage.setItem('calcHibridDados', JSON.stringify(dados));
+        }
+
+        // Função para carregar dados do localStorage
+        function carregarDados() {
+            const dadosSalvos = localStorage.getItem('calcHibridDados');
+            if (dadosSalvos) {
+                const dados = JSON.parse(dadosSalvos);
+                
+                document.getElementById('distancia').value = dados.distancia || '516';
+                document.getElementById('vtolTotal').value = dados.vtolTotal || '64.7';
+                document.getElementById('combustivelTotal').value = dados.combustivelTotal || '7.2';
+                document.getElementById('precoKwh').value = dados.precoKwh || '1.49';
+                document.getElementById('precoGasolina').value = dados.precoGasolina || '6.19';
+                document.getElementById('bateriaTotal').value = dados.bateriaTotal || '18.8';
+                document.getElementById('bateriaAtualPct').value = dados.bateriaAtualPct || '28';
+                document.getElementById('bateriaInicialPct').value = dados.bateriaInicialPct || '50';
+                document.getElementById('tempoViagem').value = dados.tempoViagem || '8';
+                document.getElementById('consumoComparativo').value = dados.consumoComparativo || '12';
+                
+                // Configurar checkbox de detalhes de recarga
+                document.getElementById('ativaDetalhesRecarga').checked = dados.ativaDetalhesRecarga || false;
+                
+                // Carregar recargas se houver
+                if (dados.ativaDetalhesRecarga && dados.recargas && dados.recargas.length > 0) {
+                    containerRecargas.classList.remove('hidden');
+                    listaRecargas.innerHTML = '';
+                    dados.recargas.forEach(recarga => {
+                        adicionarLinhaRecarga(parseFloat(recarga.kwh), parseFloat(recarga.preco));
+                    });
+                } else {
+                    containerRecargas.classList.add('hidden');
+                }
+            }
+        }
+
+        // Função para limpar dados do localStorage
+        function limparDados() {
+            if (confirm('Tem certeza que deseja limpar todos os dados salvos?')) {
+                localStorage.removeItem('calcHibridDados');
+                // Recarregar a página para restaurar valores padrão
+                location.reload();
+            }
+        }
+
+        // Adicionar eventos para salvar automaticamente nos campos principais
+        const camposPrincipais = ['distancia', 'vtolTotal', 'combustivelTotal', 'precoKwh', 'precoGasolina', 'bateriaTotal', 'bateriaAtualPct', 'bateriaInicialPct', 'tempoViagem', 'consumoComparativo'];
+        camposPrincipais.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('change', salvarDados);
+                input.addEventListener('input', salvarDados);
+            }
+        });
+
+        // Executar o cálculo ao carregar a página pela primeira vez
+        window.onload = function() {
+            console.log('Página carregada, iniciando...');
+            carregarDados();
+            console.log('Dados carregados, calculando...');
+            calcular();
+            console.log('Cálculo concluído');
+        };
+    </script>
+</body>
+</html>
