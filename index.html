@@ -273,14 +273,7 @@
                     <div class="pt-4 border-t border-slate-700">
                         <label class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="ativaDetalhesRecarga" class="w-5 h-5 text-emerald-500 bg-slate-900 border-slate-700 rounded focus:ring-emerald-500">
-                            <div class="tooltip-container">
-                                <span class="text-sm font-medium text-emerald-300">Detalhar custos de cada recarga individualmente (Eletroposto)</span>
-                                <span class="tooltip-icon" style="margin-left: 6px;">?</span>
-                                <div class="tooltip">
-                                    <div class="tooltip-title">Recargas Detalhadas</div>
-                                    Ative para especificar custos individuais de cada recarga (diferentes preços em eletropostos). Fornece cálculo mais preciso quando há variação de preços de energia.
-                                </div>
-                            </div>
+                            <span class="text-sm font-medium text-emerald-300">Detalhar custos de cada recarga individualmente (Eletroposto)</span>
                         </label>
                     </div>
 
@@ -288,14 +281,7 @@
                     <div class="pt-2">
                         <label class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="carroEletrico" class="w-5 h-5 text-blue-500 bg-slate-900 border-slate-700 rounded focus:ring-blue-500">
-                            <div class="tooltip-container">
-                                <span class="text-sm font-medium text-blue-300">Carro Elétrico Puro (sem combustível)</span>
-                                <span class="tooltip-icon" style="margin-left: 6px;">?</span>
-                                <div class="tooltip">
-                                    <div class="tooltip-title">Modo Carro Elétrico</div>
-                                    Ative para calcular apenas com energia elétrica, ignorando consumo de combustível. O preço da gasolina é mantido para comparação com veículos tradicionais.
-                                </div>
-                            </div>
+                            <span class="text-sm font-medium text-blue-300">Carro Elétrico Puro (sem combustível)</span>
                         </label>
                     </div>
 
@@ -839,6 +825,12 @@
 
                 document.getElementById('resCustoTradicional').innerText = `R$ ${custoTradicional.toFixed(2)}`;
                 document.getElementById('resEconomia').innerText = `R$ ${economia.toFixed(2)} (${economiaPct.toFixed(1)}%)`;
+                
+                // Atualizar projeção anual se estiver visível
+                const resultadosProjecao = document.getElementById('resultadosProjecaoAnual');
+                if (!resultadosProjecao.classList.contains('hidden')) {
+                    calcularProjecaoAnual();
+                }
             } catch (error) {
                 console.error('Erro ao calcular:', error);
             }
